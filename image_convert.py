@@ -1,8 +1,7 @@
 from PIL import Image
-from math import sqrt
+from math import pi, sqrt
 import glob
 import time
-import datetime
 
 """
     Loads the color palette
@@ -92,7 +91,7 @@ def convert_color (color, palette):
     for c in palette:
         c1 = rgb2lab(color)
         c2 = rgb2lab(c)
-        d = get_color_distance_rgb(color, c)
+        d = get_color_distance_lab(c1, c2)
 
         if d < dist:
             res = c
@@ -159,6 +158,23 @@ def rgb2lab (color):
 
     return (Lab[0], Lab[1], Lab[2])
 
+def get_adjacent_colors (color, range_val):
+    colors = []
+    colors.append(color)
+    
+    for r in range(-range_val, range_val):
+        colors.append((color[0] + r, color[1], color[2]))
+        colors.append((color[0], color[1] + r, color[2]))
+        colors.append((color[0], color[1], color[2] + r))
+
+        colors.append((color[0] + r, color[1] + r, color[2]))
+        colors.append((color[0], color[1] + r, color[2] + r))
+        colors.append((color[0] + r, color[1], color[2] + r))
+
+        colors.append((color[0] + r, color[1] + r, color[2] + r))
+
+    return colors
+
 """
     Lanch point function.
 """
@@ -168,13 +184,23 @@ def main ():
     images = load_images()
     resultfolder = 'res'
 
+    saved_pixels = {}
+
     iteration = 1
     for img in images:
         pixels = img.load()
         st = time.time()
         for x in range(img.size[0]):
             for y in range(img.size[1]):
-                pixels[x, y] = convert_color(pixels[x, y], palette)
+                if pixels[x, y] in saved_pixels:
+                    pixels[x, y] = saved_pixels[pixels[x, y]]
+                else:
+                    colors = get_adjacent_colors(pixels[x, y], 35)
+                    color = convert_color(colors[0], palette)
+                    for c in colors:
+                        saved_pixels[c] = color
+                    pixels[x, y] = color
+
         et = time.time()
         img.save('./results/image' + str(iteration) + '.jpg')
         iteration = iteration + 1
