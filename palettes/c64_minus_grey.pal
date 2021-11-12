@@ -11,6 +11,3 @@ brown : 102, 68, 0
 light_red : 255, 119, 119
 light_green : 170, 255, 102
 light_blue : 0, 136, 255
-dark_grey : 51, 51, 51
-grey : 119, 119, 119
-light_grey : 187, 187, 187

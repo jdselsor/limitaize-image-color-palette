@@ -13,12 +13,13 @@ import time
         A list of 3 element tuples
 """
 def load_color_palette (palette):
-    pal = []
+    pal = {}
     with open("./palettes/" + palette + ".pal") as file:
         for line in file:
             l = line.split()
-            color = (int(l[len(l)-3].strip(',')), int(l[len(l)-2].strip(',')), int(l[len(l)-1].strip(',')))
-            pal.append(color)
+            pal[l[0]] = (int(l[len(l)-3].strip(',')), int(l[len(l)-2].strip(',')), int(l[len(l)-1].strip(',')))
+            # color = (int(l[len(l)-3].strip(',')), int(l[len(l)-2].strip(',')), int(l[len(l)-1].strip(',')))
+            # pal.append(color)
     return pal
 
 """
@@ -88,14 +89,52 @@ def get_color_distance_lab (color1, color2):
 def convert_color (color, palette):
     res = (-1, -1, -1)
     dist = 999999999999
-    for c in palette:
+
+    # threshold Testing
+    dRG = abs(color[0] - color[1])
+    dGB = abs(color[1] - color[2])
+    dRB = abs(color[0] - color[2])
+    threshold = 5
+
+    greys = []
+    nongreys = []
+    pal = []
+    
+    for c in palette.keys():
+        if "grey" in c.lower():
+            greys.append(palette[c])
+        else:
+            nongreys.append(palette[c])
+        pal.append(palette[c])
+
+    for c in pal:
         c1 = rgb2lab(color)
         c2 = rgb2lab(c)
         d = get_color_distance_lab(c1, c2)
-
+            
         if d < dist:
             res = c
             dist = d
+
+    # if dRG < threshold and dGB < threshold and dRB < threshold:
+    #     for c in greys:
+    #         c1 = rgb2lab(color)
+    #         c2 = rgb2lab(c)
+    #         d = get_color_distance_lab(c1, c2)
+
+    #         if d < dist:
+    #             res = c
+    #             dist = d
+    # else:
+    #     for c in nongreys:
+    #         c1 = rgb2lab(color)
+    #         c2 = rgb2lab(c)
+    #         d = get_color_distance_lab(c1, c2)
+            
+    #         if d < dist:
+    #             res = c
+    #             dist = d
+
     return res
 
 """
@@ -180,9 +219,8 @@ def get_adjacent_colors (color, range_val):
 """
 def main ():
     palette_name = 'c64'
-    palette = load_color_palette('c64')
+    palette = load_color_palette(palette_name)
     images = load_images()
-    resultfolder = 'res'
 
     saved_pixels = {}
 
@@ -190,6 +228,7 @@ def main ():
     for img in images:
         pixels = img.load()
         st = time.time()
+
         for x in range(img.size[0]):
             for y in range(img.size[1]):
                 if pixels[x, y] in saved_pixels:
@@ -202,7 +241,7 @@ def main ():
                     pixels[x, y] = color
 
         et = time.time()
-        img.save('./results/image' + str(iteration) + '.jpg')
+        img.save('./results/' + palette_name + '_image' + str(iteration) + '.jpg')
         iteration = iteration + 1
         print(str(et-st) + " seconds")
 
